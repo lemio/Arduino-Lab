@@ -20,6 +20,13 @@
     <cp>lib/jna.jar</cp>
     <cp>lib/ecj.jar</cp>
     <cp>lib/RXTXcomm.jar</cp>
+    <cp>lib/jfreechart.jar</cp>
+    <cp>lib/iText.jar</cp>
+    <cp>lib/swtgraphics2d.jar</cp>
+    <cp>lib/servlet.jar</cp>
+    <cp>lib/jfreechart-swt.jar</cp>
+    <cp>lib/gnujaxp.jar</cp>
+    
   </classPath>
   <jre>
     <path>java</path>

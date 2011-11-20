@@ -37,12 +37,12 @@ public class EditorToolbar extends JComponent implements MouseInputListener, Key
 
   /** Rollover titles for each button. */
   static final String title[] = {
-    "Verify", "Upload", "New", "Open", "Save", "Serial Monitor"
+    "Verify", "Upload", "New", "Open", "Save", "Serial Monitor" , "graph"
   };
 
   /** Titles for each button when the shift key is pressed. */ 
   static final String titleShift[] = {
-    "Verify", "Upload Using Programmer", "New Editor Window", "Open in Another Window", "Save", "Serial Monitor"
+    "Verify", "Upload Using Programmer", "New Editor Window", "Open in Another Window", "Save", "Serial Monitor" , "graph"
   };
 
   static final int BUTTON_COUNT  = title.length;
@@ -64,7 +64,8 @@ public class EditorToolbar extends JComponent implements MouseInputListener, Key
   static final int SAVE     = 4;
 
   static final int SERIAL   = 5;
-
+  static final int GRAPH   =  6;
+  
   static final int INACTIVE = 0;
   static final int ROLLOVER = 1;
   static final int ACTIVE   = 2;
@@ -108,8 +109,9 @@ public class EditorToolbar extends JComponent implements MouseInputListener, Key
     which[buttonCount++] = NEW;
     which[buttonCount++] = OPEN;
     which[buttonCount++] = SAVE;
-    which[buttonCount++] = SERIAL;
 
+    which[buttonCount++] = SERIAL;
+    which[buttonCount++] = GRAPH;
     currentRollover = -1;
 
     bgcolor = Theme.getColor("buttons.bgcolor");
@@ -172,8 +174,12 @@ public class EditorToolbar extends JComponent implements MouseInputListener, Key
       }
       
       // Serial button must be on the right
-      x1[SERIAL] = width - BUTTON_WIDTH - 14;
-      x2[SERIAL] = width - 14;
+      x1[GRAPH] = width - BUTTON_WIDTH - 14;//change this to the graph button and add the serial button to the left of the graph button(2*BUTTON_WIDTH for SERIAL)
+      x2[GRAPH] = width - 14;
+
+	  x1[SERIAL] = width - 2*BUTTON_WIDTH - 14;//change this to the graph button and add the serial button to the left of the graph button(2*BUTTON_WIDTH for SERIAL)
+      x2[SERIAL] = width - BUTTON_WIDTH-14;
+    
     }
     Graphics g = offscreen.getGraphics();
     g.setColor(bgcolor); //getBackground());
@@ -200,8 +206,8 @@ public class EditorToolbar extends JComponent implements MouseInputListener, Key
     if (currentRollover != -1) {
       int statusY = (BUTTON_HEIGHT + g.getFontMetrics().getAscent()) / 2;
       String status = shiftPressed ? titleShift[currentRollover] : title[currentRollover];
-      if (currentRollover != SERIAL)
-        g.drawString(status, (buttonCount-1) * BUTTON_WIDTH + 3 * BUTTON_GAP, statusY);
+      if (currentRollover != SERIAL && currentRollover!= GRAPH)
+        g.drawString(status, (buttonCount-2) * BUTTON_WIDTH + 3 * BUTTON_GAP, statusY);
       else {
         int statusX = x1[SERIAL] - BUTTON_GAP;
         statusX -= g.getFontMetrics().stringWidth(status);
@@ -351,6 +357,10 @@ public class EditorToolbar extends JComponent implements MouseInputListener, Key
     case SERIAL:
       editor.handleSerial();
       break;
+    case GRAPH:
+      editor.handleGraph();
+      break;
+
     }
   }
 

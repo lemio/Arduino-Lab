@@ -99,6 +99,7 @@ public class Editor extends JFrame implements RunnerListener {
 
   static SerialMenuListener serialMenuListener;
   static SerialMonitor serialMonitor;
+  static GraphMonitor graphMonitor;
   
   EditorHeader header;
   EditorStatus status;
@@ -200,7 +201,10 @@ public class Editor extends JFrame implements RunnerListener {
       serialMonitor = new SerialMonitor(Preferences.get("serial.port"));
       serialMonitor.setIconImage(getIconImage());
     }
-    
+    if(graphMonitor == null){
+        graphMonitor = new GraphMonitor(Preferences.get("serial.port"));
+        graphMonitor.setIconImage(getIconImage());
+    }
     buildMenuBar();
 
     // For rev 0120, placing things inside a JPanel
@@ -2391,7 +2395,8 @@ public class Editor extends JFrame implements RunnerListener {
       try {
         serialMonitor.closeSerialPort();
         serialMonitor.setVisible(false);
-            
+        graphMonitor.closeSerialPort();
+        graphMonitor.setVisible(false);
         uploading = true;
           
         boolean success = sketch.exportApplet(true);
@@ -2465,7 +2470,16 @@ public class Editor extends JFrame implements RunnerListener {
       statusError(e);
     }
   }
-
+  public void handleGraph(){
+      if (uploading) return;
+          try{
+              graphMonitor.openSerialPort();
+              graphMonitor.setVisible(true);
+          } catch(SerialException e){
+              statusError(e);
+          }
+          
+  }
 
   protected void handleBurnBootloader() {
     console.clear();
