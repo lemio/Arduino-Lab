@@ -44,7 +44,7 @@
 	   encoding="UTF-8"
 	   includeAntRuntime="false"
 	   debug="true"
-	   classpath="../core/core.jar; ${env.JAVA_HOME}/lib/tools.jar; lib/ant.jar; lib/ant-launcher.jar; lib/apple.jar; lib/ecj.jar; lib/jna.jar; lib/RXTXcomm.jar" />
+	   classpath="../core/core.jar; ${env.JAVA_HOME}/lib/tools.jar; lib/ant.jar; lib/ant-launcher.jar; lib/apple.jar; lib/ecj.jar; lib/jna.jar; lib/RXTXcomm.jar; lib/jfreechart.jar; lib/jcommon.jar; lib/iText.jar; lib/swtgraphics2d.jar; lib/servlet.jar; lib/jfreechart-swt.jar; lib/gnujaxp.jar" />
   </target>
   
   <target name="build" depends="compile" description="Build PDE">
