@@ -49,7 +49,7 @@ public class GraphMonitor extends JFrame implements MessageConsumer {
   private JTextArea graphArea;
   private JScrollPane scrollPane;
   private JScrollPane graphScrollPane;
-
+  private GraphToolbar toolbar;
   private JTextField textField;
   private JButton sendButton;
   private JCheckBox autoscrollBox;
@@ -80,8 +80,8 @@ public class GraphMonitor extends JFrame implements MessageConsumer {
     getContentPane().setLayout(new BorderLayout());
     
     Font font = Theme.getFont("console.font");
-
-    textArea = new JTextArea(16, 20);
+    toolbar= new GraphToolbar(null,null);
+    textArea = new JTextArea(16, 10);
     textArea.setEditable(false);    
     textArea.setFont(font);
     // don't automatically update the caret.  that way we can manually decide
@@ -89,89 +89,13 @@ public class GraphMonitor extends JFrame implements MessageConsumer {
     ((DefaultCaret)textArea.getCaret()).setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
     
     scrollPane = new JScrollPane(textArea);
-	JPanel pane = new JPanel();
+    JPanel pane = new JPanel();
     pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
     pane.setBorder(new EmptyBorder(4, 4, 4, 4));
     pane.add(this.graph());
-	pane.add(scrollPane);
-	getContentPane().add(pane, BorderLayout.CENTER);
-	
-	    
-    pane = new JPanel();
-    pane.setLayout(new BoxLayout(pane, BoxLayout.X_AXIS));
-    pane.setBorder(new EmptyBorder(4, 4, 4, 4));
-
-    // textField = new JTextField(40);
-    // textField.addActionListener(new ActionListener() {
-    //   public void actionPerformed(ActionEvent e) {
-    //     send(textField.getText());
-    //     textField.setText("");
-    //   }});
-
-    // sendButton = new JButton("Send");
-    // sendButton.addActionListener(new ActionListener() {
-    //   public void actionPerformed(ActionEvent e) {
-    //     send(textField.getText());
-    //     textField.setText("");
-    //   }});
-    
-    // pane.add(textField);
-    // pane.add(Box.createRigidArea(new Dimension(4, 0)));
-    // pane.add(sendButton);
-    // 
-    // getContentPane().add(pane, BorderLayout.NORTH);
-    
-    // pane = new JPanel();
-    // pane.setLayout(new BoxLayout(pane, BoxLayout.X_AXIS));
-    // pane.setBorder(new EmptyBorder(4, 4, 4, 4));
-    // 
-    // autoscrollBox = new JCheckBox("Autoscroll", true);
-    // 
-    // lineEndings = new JComboBox(new String[] { "No line ending", "Newline", "Carriage return", "Both NL & CR" });
-    // lineEndings.addActionListener(new ActionListener() {
-    //   public void actionPerformed(ActionEvent event) {
-    //      Preferences.setInteger("serial.line_ending", lineEndings.getSelectedIndex());
-    //   }
-    // });
-    // if (Preferences.get("serial.line_ending") != null) {
-    //   lineEndings.setSelectedIndex(Preferences.getInteger("serial.line_ending"));
-    // }
-    // lineEndings.setMaximumSize(lineEndings.getMinimumSize());
-    //   
-    // String[] serialRateStrings = {
-    //   "300","1200","2400","4800","9600","14400",
-    //   "19200","28800","38400","57600","115200"
-    // };
-    // 
-    // serialRates = new JComboBox();
-    // for (int i = 0; i < serialRateStrings.length; i++)
-    //   serialRates.addItem(serialRateStrings[i] + " baud");
-    // 
-    // serialRate = Preferences.getInteger("serial.debug_rate");
-    // serialRates.setSelectedItem(serialRate + " baud");
-    // serialRates.addActionListener(new ActionListener() {
-    //   public void actionPerformed(ActionEvent event) {
-    //     String wholeString = (String) serialRates.getSelectedItem();
-    //     String rateString = wholeString.substring(0, wholeString.indexOf(' '));
-    //     serialRate = Integer.parseInt(rateString);
-    //     Preferences.set("serial.debug_rate", rateString);
-    //     closeSerialPort();
-    //     try {
-    //       openSerialPort();
-    //     } catch (SerialException e) {
-    //       System.err.println(e);
-    //     }
-    //   }});
-    //   
-    // serialRates.setMaximumSize(serialRates.getMinimumSize());
-    // 
-    // pane.add(autoscrollBox);
-    // pane.add(Box.createHorizontalGlue());
-    // pane.add(lineEndings);
-    // pane.add(Box.createRigidArea(new Dimension(8, 0)));
-    // pane.add(serialRates);
-    // 
-    // getContentPane().add(pane, BorderLayout.SOUTH);
+    pane.add(scrollPane);
+    getContentPane().add(toolbar,BorderLayout.NORTH);
+    getContentPane().add(pane, BorderLayout.CENTER);
 
     pack();
     
@@ -238,27 +162,27 @@ public class GraphMonitor extends JFrame implements MessageConsumer {
   }
   
   public void message(final String s) {
-    SwingUtilities.invokeLater(new Runnable() {
+    SwingUtilities.invokeLater(new Runnable() {//TODO implement 2 arrays for x and y values
       public void run() {
         textArea.append(s);
         if (autoscrollBox.isSelected()) {
-        	textArea.setCaretPosition(textArea.getDocument().getLength());
+          textArea.setCaretPosition(textArea.getDocument().getLength());
         }
       }});
   }
   public ChartPanel graph(){
-      	 TimeTableXYDataset data = new TimeTableXYDataset();
-      	 Second second = new Second(new Date(System.currentTimeMillis() + 1000));
-      	 data.add(second, 20.0,"a");
-      	 Second second2 = new Second(new Date(System.currentTimeMillis() + 2000));
-      	 data.add(second2, 30.8,"a");
-      	 Second second3 = new Second(new Date(System.currentTimeMillis() + 3000));
-      	 data.add(second3, 60.5,"a");
-      	 JFreeChart chart = ChartFactory.createXYLineChart(null, null, null,
-      			 data, PlotOrientation.VERTICAL,
-      			 false, false, false);
-      			 ChartPanel panel = new ChartPanel(chart);
-      			 
+    TimeTableXYDataset data = new TimeTableXYDataset();
+    Second second = new Second(new Date(System.currentTimeMillis() + 1000));
+    data.add(second, 20.0,"a");
+    Second second2 = new Second(new Date(System.currentTimeMillis() + 2000));
+    data.add(second2, 30.8,"a");
+    Second second3 = new Second(new Date(System.currentTimeMillis() + 3000));
+    data.add(second3, 60.5,"a");
+    JFreeChart chart = ChartFactory.createXYLineChart(null, null, null,
+        data, PlotOrientation.VERTICAL,
+        false, false, false);
+    ChartPanel panel = new ChartPanel(chart);
+  
       return panel;
   }
 }
