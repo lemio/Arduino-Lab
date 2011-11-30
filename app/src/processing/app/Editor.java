@@ -954,6 +954,10 @@ public class Editor extends JFrame implements RunnerListener {
     serialMonitor.closeSerialPort();
     serialMonitor.setVisible(false);
     serialMonitor = new SerialMonitor(Preferences.get("serial.port"));
+    graphMonitor.closeSerialPort();
+    graphMonitor.setVisible(false);
+    graphMonitor = new GraphMonitor(Preferences.get("serial.port"));
+    
     //System.out.println("set to " + get("serial.port"));
   }
 

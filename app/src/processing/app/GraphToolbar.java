@@ -65,7 +65,7 @@ public class GraphToolbar extends JComponent implements MouseInputListener, KeyL
   static final int ROLLOVER = 1;
   static final int ACTIVE   = 2;
 
-  Editor editor;
+  GraphMonitor monitor;
 
   Image offscreen;
   int width, height;
@@ -91,8 +91,8 @@ public class GraphToolbar extends JComponent implements MouseInputListener, KeyL
 
   boolean shiftPressed;
 
-  public GraphToolbar(Editor editor, JMenu menu) {
-    this.editor = editor;
+  public GraphToolbar(GraphMonitor monitor, JMenu menu) {
+    this.monitor = monitor;
     this.menu = menu;
 
     buttonCount = 0;
@@ -304,9 +304,11 @@ public class GraphToolbar extends JComponent implements MouseInputListener, KeyL
 
     switch (sel) {
     case START:
+      monitor.handleStart();
       break;
 
     case STOP:
+      monitor.handleStop();
       break;
 
     case COPY:
