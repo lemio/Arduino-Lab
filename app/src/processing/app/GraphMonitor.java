@@ -22,7 +22,7 @@ import processing.app.debug.MessageConsumer;
 import processing.core.*;
 
 import java.awt.*;
-import java.util.Date;
+import java.util.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -40,7 +40,7 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.renderer.xy.XYStepRenderer;
-import org.jfree.data.time.Second;
+import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.TimeTableXYDataset;
 public class GraphMonitor extends JFrame implements MessageConsumer {
   private Serial serial;
@@ -49,19 +49,23 @@ public class GraphMonitor extends JFrame implements MessageConsumer {
   private JTextArea graphArea;
   private JScrollPane scrollPane;
   private JScrollPane graphScrollPane;
-
+  private GraphToolbar toolbar;
   private JTextField textField;
   private JButton sendButton;
   private JCheckBox autoscrollBox;
   private JComboBox lineEndings;
   private JComboBox serialRates;
   private int serialRate;
-
+  private boolean start=false;
+  private long starttime;
+  private LinkedList <Character> stringdata;
+  private Graph graph;
+  private int hz=1000;
   public GraphMonitor(String port) {
     super(port);
   
     this.port = port;
-  
+    graph= new Graph();
     addWindowListener(new WindowAdapter() {
         public void windowClosing(WindowEvent e) {
           closeSerialPort();
@@ -78,101 +82,29 @@ public class GraphMonitor extends JFrame implements MessageConsumer {
       }});
   
     getContentPane().setLayout(new BorderLayout());
-    
+    stringdata= new LinkedList<Character>();
     Font font = Theme.getFont("console.font");
-
-    textArea = new JTextArea(16, 20);
+    toolbar= new GraphToolbar(this,null);
+    textArea = new JTextArea(16, 10);
     textArea.setEditable(false);    
     textArea.setFont(font);
     // don't automatically update the caret.  that way we can manually decide
     // whether or not to do so based on the autoscroll checkbox.
     ((DefaultCaret)textArea.getCaret()).setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
-    
+    textField = new JTextField(40);
+    textField.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        hz=1000/Integer.valueOf(textField.getText()).intValue();
+      }});
     scrollPane = new JScrollPane(textArea);
-	JPanel pane = new JPanel();
+    JPanel pane = new JPanel();
     pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
     pane.setBorder(new EmptyBorder(4, 4, 4, 4));
-    pane.add(this.graph());
-	pane.add(scrollPane);
-	getContentPane().add(pane, BorderLayout.CENTER);
-	
-	    
-    pane = new JPanel();
-    pane.setLayout(new BoxLayout(pane, BoxLayout.X_AXIS));
-    pane.setBorder(new EmptyBorder(4, 4, 4, 4));
-
-    // textField = new JTextField(40);
-    // textField.addActionListener(new ActionListener() {
-    //   public void actionPerformed(ActionEvent e) {
-    //     send(textField.getText());
-    //     textField.setText("");
-    //   }});
-
-    // sendButton = new JButton("Send");
-    // sendButton.addActionListener(new ActionListener() {
-    //   public void actionPerformed(ActionEvent e) {
-    //     send(textField.getText());
-    //     textField.setText("");
-    //   }});
-    
-    // pane.add(textField);
-    // pane.add(Box.createRigidArea(new Dimension(4, 0)));
-    // pane.add(sendButton);
-    // 
-    // getContentPane().add(pane, BorderLayout.NORTH);
-    
-    // pane = new JPanel();
-    // pane.setLayout(new BoxLayout(pane, BoxLayout.X_AXIS));
-    // pane.setBorder(new EmptyBorder(4, 4, 4, 4));
-    // 
-    // autoscrollBox = new JCheckBox("Autoscroll", true);
-    // 
-    // lineEndings = new JComboBox(new String[] { "No line ending", "Newline", "Carriage return", "Both NL & CR" });
-    // lineEndings.addActionListener(new ActionListener() {
-    //   public void actionPerformed(ActionEvent event) {
-    //      Preferences.setInteger("serial.line_ending", lineEndings.getSelectedIndex());
-    //   }
-    // });
-    // if (Preferences.get("serial.line_ending") != null) {
-    //   lineEndings.setSelectedIndex(Preferences.getInteger("serial.line_ending"));
-    // }
-    // lineEndings.setMaximumSize(lineEndings.getMinimumSize());
-    //   
-    // String[] serialRateStrings = {
-    //   "300","1200","2400","4800","9600","14400",
-    //   "19200","28800","38400","57600","115200"
-    // };
-    // 
-    // serialRates = new JComboBox();
-    // for (int i = 0; i < serialRateStrings.length; i++)
-    //   serialRates.addItem(serialRateStrings[i] + " baud");
-    // 
-    // serialRate = Preferences.getInteger("serial.debug_rate");
-    // serialRates.setSelectedItem(serialRate + " baud");
-    // serialRates.addActionListener(new ActionListener() {
-    //   public void actionPerformed(ActionEvent event) {
-    //     String wholeString = (String) serialRates.getSelectedItem();
-    //     String rateString = wholeString.substring(0, wholeString.indexOf(' '));
-    //     serialRate = Integer.parseInt(rateString);
-    //     Preferences.set("serial.debug_rate", rateString);
-    //     closeSerialPort();
-    //     try {
-    //       openSerialPort();
-    //     } catch (SerialException e) {
-    //       System.err.println(e);
-    //     }
-    //   }});
-    //   
-    // serialRates.setMaximumSize(serialRates.getMinimumSize());
-    // 
-    // pane.add(autoscrollBox);
-    // pane.add(Box.createHorizontalGlue());
-    // pane.add(lineEndings);
-    // pane.add(Box.createRigidArea(new Dimension(8, 0)));
-    // pane.add(serialRates);
-    // 
-    // getContentPane().add(pane, BorderLayout.SOUTH);
-
+    pane.add(graph.panel());
+    pane.add(scrollPane);
+    getContentPane().add(toolbar,BorderLayout.NORTH);
+    getContentPane().add(pane, BorderLayout.CENTER);
+    getContentPane().add(textField, BorderLayout.SOUTH);
     pack();
     
     Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
@@ -238,27 +170,62 @@ public class GraphMonitor extends JFrame implements MessageConsumer {
   }
   
   public void message(final String s) {
-    SwingUtilities.invokeLater(new Runnable() {
+    //System.err.println(serial.readString());
+    SwingUtilities.invokeLater(new Runnable() {//TODO implement 2 arrays for x and y values
       public void run() {
-        textArea.append(s);
-        if (autoscrollBox.isSelected()) {
-        	textArea.setCaretPosition(textArea.getDocument().getLength());
+        if (start) {
+          addtobuffer(s);
         }
+        textArea.append(s);
+        textArea.setCaretPosition(textArea.getDocument().getLength());
       }});
   }
-  public ChartPanel graph(){
-      	 TimeTableXYDataset data = new TimeTableXYDataset();
-      	 Second second = new Second(new Date(System.currentTimeMillis() + 1000));
-      	 data.add(second, 20.0,"a");
-      	 Second second2 = new Second(new Date(System.currentTimeMillis() + 2000));
-      	 data.add(second2, 30.8,"a");
-      	 Second second3 = new Second(new Date(System.currentTimeMillis() + 3000));
-      	 data.add(second3, 60.5,"a");
-      	 JFreeChart chart = ChartFactory.createXYLineChart(null, null, null,
-      			 data, PlotOrientation.VERTICAL,
-      			 false, false, false);
-      			 ChartPanel panel = new ChartPanel(chart);
-      			 
-      return panel;
+  public void addtobuffer(String s){
+    for (int i=0; i==(s.length()-1);i++ ) {
+        stringdata.add(s.charAt(i));
+    }
+    
+  }
+  public void handleStart(){
+    start=true;
+    starttime=System.currentTimeMillis();
+    //serial.write("****");
+    //graph.reset();
+    if (textField.getText()!="") {
+      hz=1000/Integer.valueOf(textField.getText()).intValue();
+      
+    }
+  }
+  public void handleStop(){
+    start=false;
+    
+    //serial.write("****");
+    parse();
+  }
+  public void parse(){
+    graph.reset();
+    int count=0;
+    String number="";
+    char c;
+    int isNumber=1;
+    while(stringdata.size()!=0){
+      while(isNumber==1){
+         c=stringdata.poll();
+         if(Character.isDigit(c)){
+           number +=c;          
+        }else{
+           isNumber=0;
+        }
+      }
+      if(number.length()>0){
+        int temp= Integer.valueOf( number ).intValue();
+        graph.add(new Millisecond(new Date(count*hz)),temp);
+        number="";
+        count++;
+      }
+      isNumber=1;
+    }
+    //textArea.append("====");
+    
   }
 }
